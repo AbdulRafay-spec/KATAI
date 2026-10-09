@@ -1,6 +1,6 @@
 import { Card, Label, PageHeader } from "@/components/ui";
 import { CLASS_INFO } from "@/lib/ai";
-import { MODEL_METRICS as M } from "@/lib/mock-data";
+import { MODEL_METRICS as M, MODEL_VERSION } from "@/lib/model-info";
 
 const pct = (v: number) => `${(v * 100).toFixed(1)}%`;
 
@@ -10,15 +10,31 @@ export default function ModelPage() {
   return (
     <div className="space-y-6">
       <PageHeader
-        title="Model performance"
-        subtitle="Measured on 1,600 MRI images the model never saw during training."
+        title="Model information"
+        subtitle="What the classifier does, how it was evaluated, and where it falls short."
       />
+
+      <Card title="What it does">
+        <ul className="list-disc space-y-2 pl-5 text-sm">
+          <li>Classifies one 2D brain MRI slice into glioma, meningioma, pituitary tumor or no tumor.</li>
+          <li>Returns a model score for each class. Scores are not calibrated clinical probabilities.</li>
+          <li>Not every brain tumor class is malignant cancer; the model does not assess malignancy.</li>
+          <li>
+            Model {MODEL_VERSION}: {M.architecture}.
+          </li>
+        </ul>
+      </Card>
+
+      <p className="rounded-xl border border-warn/40 bg-warn-soft p-4 text-sm text-warn">
+        <strong>Evidence status:</strong> {M.evidence} Image-level held-out test on one public dataset; no patient-independent or
+        external clinical validation.
+      </p>
 
       <div className="grid gap-3 sm:grid-cols-3">
         {[
-          { label: "Accuracy", value: M.accuracy, hint: "Correct tumor type" },
-          { label: "Sensitivity", value: M.sensitivity, hint: "Tumors caught" },
-          { label: "Specificity", value: M.specificity, hint: "Healthy scans cleared" },
+          { label: "Accuracy", value: M.accuracy, hint: "Correct class, all 1,600 test images" },
+          { label: "Tumor sensitivity", value: M.sensitivity, hint: "Tumor images given any tumor class" },
+          { label: "Specificity", value: M.specificity, hint: "No-tumor images given no tumor" },
         ].map((m) => (
           <div key={m.label} className="rounded-2xl border border-border bg-surface p-5">
             <Label>{m.label}</Label>
@@ -102,14 +118,17 @@ export default function ModelPage() {
       <Card title="Known limitations">
         <ul className="list-disc space-y-2 pl-5 text-sm text-muted">
           <li>
-            <strong className="text-text">Glioma is the weak spot:</strong> 17 of 400 gliomas were classified as no tumor,
-            and 49 as meningioma.
+            <strong className="text-text">Glioma is the weak spot:</strong> only 334 of 400 glioma images were classified
+            correctly (83.5% recall); 49 were assigned meningioma and 17 were assigned no tumor.
           </li>
-          <li>Test images come from the same public dataset as training; accuracy on real hospital scans will be lower.</li>
-          <li>The model classifies single 2D slices. It does not locate or measure the tumor.</li>
-          <li>It will answer even for images that are not brain MRIs. Inputs must be checked by the user.</li>
+          <li>
+            Test images come from the same public dataset as training. Performance on hospital data has not been established
+            and may differ.
+          </li>
+          <li>The model classifies single 2D slices. It does not locate or measure lesions.</li>
+          <li>It answers for any decodable image, including images that are not brain MRIs. Inputs must be checked by the user.</li>
         </ul>
-        <p className="mt-4 text-xs text-muted">{M.architecture} · {M.dataset}</p>
+        <p className="mt-4 text-xs text-muted">{M.dataset}</p>
       </Card>
     </div>
   );

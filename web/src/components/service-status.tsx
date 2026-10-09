@@ -2,35 +2,47 @@
 
 import { useEffect, useState } from "react";
 import { Badge } from "./ui";
-import { AI_SERVICE_URL, checkService } from "@/lib/ai";
+import { AI_SERVICE_URL, type ServiceState, checkService } from "@/lib/ai";
 
-export function ServiceStatus() {
-  const [online, setOnline] = useState<boolean | null>(null);
+const BADGE: Record<ServiceState | "checking", React.ReactNode> = {
+  checking: <Badge>Checking…</Badge>,
+  online: <Badge tone="success">Available</Badge>,
+  unexpected: <Badge tone="warn">Unexpected service</Badge>,
+  unavailable: <Badge tone="danger">Unavailable</Badge>,
+};
 
+const TEXT: Record<ServiceState | "checking", string> = {
+  checking: "Checking the classifier…",
+  online: "Brain MRI classifier is responding.",
+  unexpected: "A service answered but did not identify itself as the brain MRI classifier.",
+  unavailable: "The classifier cannot be reached right now.",
+};
+
+export function useServiceState() {
+  const [state, setState] = useState<ServiceState | "checking">("checking");
   useEffect(() => {
-    let cancelled = false;
-    const check = () => checkService().then((ok) => !cancelled && setOnline(ok));
+    const controller = new AbortController();
+    const check = () => checkService(controller.signal).then((s) => !controller.signal.aborted && setState(s));
     check();
-    const timer = setInterval(check, 15000);
+    const timer = setInterval(check, 30000);
     return () => {
-      cancelled = true;
+      controller.abort();
       clearInterval(timer);
     };
   }, []);
+  return state;
+}
 
-  const badge =
-    online === null ? <Badge>Checking…</Badge> : online ? <Badge tone="success">Online</Badge> : <Badge tone="danger">Offline</Badge>;
-
+export function ServiceStatus({ showEndpoint = false }: { showEndpoint?: boolean }) {
+  const state = useServiceState();
   return (
-    <div className="flex items-start justify-between gap-4 rounded-xl border border-border bg-surface-2/60 p-4">
-      <div className="min-w-0">
-        <p className="text-[11px] font-semibold uppercase tracking-[0.14em] text-muted">AI service</p>
-        <p className="mt-1 truncate font-mono text-sm">{AI_SERVICE_URL}</p>
-        {online === false && (
-          <p className="mt-1 text-xs text-muted">Start it with uvicorn in the ai-service folder.</p>
-        )}
+    <div className="rounded-xl border border-border bg-surface-2/60 p-4">
+      <div className="flex items-center justify-between gap-3">
+        <p className="text-xs font-semibold uppercase tracking-[0.14em] text-muted">AI classifier</p>
+        {BADGE[state]}
       </div>
-      {badge}
+      <p className="mt-2 text-sm">{TEXT[state]}</p>
+      {showEndpoint && <p className="mt-2 truncate font-mono text-xs text-muted">Endpoint: {AI_SERVICE_URL}</p>}
     </div>
   );
 }

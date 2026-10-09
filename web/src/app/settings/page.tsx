@@ -1,8 +1,10 @@
 "use client";
 
-import { Monitor, Moon, Sun } from "lucide-react";
+import { useState } from "react";
+import { Monitor, Moon, Sun, Trash2 } from "lucide-react";
 import { Card, PageHeader } from "@/components/ui";
 import { ServiceStatus } from "@/components/service-status";
+import { STORAGE_LABEL, STORAGE_MODE, resetLocalDemo, useCases } from "@/lib/cases";
 import { type Theme, useTheme } from "@/lib/theme";
 
 const OPTIONS: { value: Theme; title: string; text: string; Icon: typeof Sun }[] = [
@@ -41,13 +43,56 @@ export default function SettingsPage() {
         </div>
       </Card>
 
-      <Card title="AI service">
-        <ServiceStatus />
-        <p className="mt-3 text-sm text-muted">
-          Change the address with <code className="font-mono text-text">NEXT_PUBLIC_AI_SERVICE_URL</code> in{" "}
-          <code className="font-mono text-text">web/.env.local</code>.
-        </p>
+      <Card title="Diagnostics">
+        <ServiceStatus showEndpoint />
       </Card>
+
+      <DemoDataCard />
     </div>
+  );
+}
+
+function DemoDataCard() {
+  const { cases } = useCases();
+  const [message, setMessage] = useState<string | null>(null);
+
+  function reset() {
+    if (!window.confirm(`Delete all ${cases.length} demo case(s) saved in this browser? This cannot be undone.`)) return;
+    try {
+      resetLocalDemo();
+      setMessage("On-device demo cases were cleared.");
+    } catch (e) {
+      setMessage(e instanceof Error ? e.message : "Reset failed.");
+    }
+  }
+
+  return (
+    <Card title="Case storage">
+      <p className="text-sm">{STORAGE_LABEL[STORAGE_MODE]}</p>
+      {STORAGE_MODE === "local" ? (
+        <>
+          <p className="mt-2 text-sm text-muted">
+            Cases are kept in this browser only. Reset removes only KATAI demo cases, nothing else.
+          </p>
+          <button
+            type="button"
+            onClick={reset}
+            disabled={cases.length === 0}
+            className="mt-4 inline-flex items-center gap-2 rounded-xl border border-danger/40 px-4 py-2.5 text-sm font-semibold text-danger hover:bg-danger-soft disabled:opacity-40"
+          >
+            <Trash2 className="size-4" /> Reset demo data
+          </button>
+        </>
+      ) : (
+        <p className="mt-2 text-sm text-muted">
+          Cases are shared by everyone using this deployment. They cannot be deleted from the app.
+        </p>
+      )}
+      {message && (
+        <p role="status" className="mt-3 text-sm">
+          {message}
+        </p>
+      )}
+    </Card>
   );
 }

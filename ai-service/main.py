@@ -21,11 +21,13 @@ DISPLAY_NAMES = {
     "glioma": "Glioma",
     "meningioma": "Meningioma",
     "pituitary": "Pituitary tumor",
-    "notumor": "No tumor detected",
+    "notumor": "No tumor",
 }
 
 API_KEY = os.environ.get("AI_SERVICE_KEY")
 MAX_UPLOAD_BYTES = 4 * 1024 * 1024  # keep in sync with web/src/lib/upload.ts
+MAX_SIDE_PX = 4096
+ALLOWED_FORMATS = {"JPEG", "PNG", "WEBP", "BMP"}
 
 app = FastAPI(title="KATAI AI Service")
 app.add_middleware(
@@ -36,9 +38,29 @@ app.add_middleware(
 )
 
 
-def preprocess(data: bytes) -> np.ndarray:
-    image = Image.open(io.BytesIO(data)).convert("RGB").resize((224, 224), Image.BILINEAR)
-    x = (np.asarray(image, dtype=np.float32) / 255.0 - MEAN) / STD
+def decode_image(data: bytes) -> Image.Image:
+    """Decodes by content, not file extension, and rejects formats and sizes the service does not support."""
+    if not data:
+        raise HTTPException(400, "The uploaded file is empty")
+    try:
+        image = Image.open(io.BytesIO(data))
+    except (UnidentifiedImageError, OSError):
+        raise HTTPException(400, "File is not a valid image")
+    if image.format not in ALLOWED_FORMATS:
+        raise HTTPException(415, "Unsupported image format. Use JPG, PNG, WEBP or BMP")
+    width, height = image.size
+    if width > MAX_SIDE_PX or height > MAX_SIDE_PX:
+        raise HTTPException(413, f"Image dimensions exceed {MAX_SIDE_PX} x {MAX_SIDE_PX} pixels")
+    try:
+        image.load()
+    except (OSError, SyntaxError, ValueError, Image.DecompressionBombError):
+        raise HTTPException(400, "Image file is corrupt or truncated")
+    return image
+
+
+def preprocess(image: Image.Image) -> np.ndarray:
+    resized = image.convert("RGB").resize((224, 224), Image.BILINEAR)
+    x = (np.asarray(resized, dtype=np.float32) / 255.0 - MEAN) / STD
     return x.transpose(2, 0, 1)[np.newaxis]
 
 
@@ -52,15 +74,12 @@ async def predict(file: UploadFile = File(...), authorization: str | None = Head
     if API_KEY and authorization != f"Bearer {API_KEY}":
         raise HTTPException(401, "Invalid or missing API key")
 
-    data = await file.read()
+    # Read one byte past the limit so oversized uploads are rejected without reading them fully.
+    data = await file.read(MAX_UPLOAD_BYTES + 1)
     if len(data) > MAX_UPLOAD_BYTES:
         raise HTTPException(413, "Image is larger than 4 MB")
 
-    try:
-        x = preprocess(data)
-    except UnidentifiedImageError:
-        raise HTTPException(400, "File is not a valid image")
-
+    x = preprocess(decode_image(data))
     logits = session.run(None, {"input": x})[0][0]
     probs = np.exp(logits - logits.max())
     probs /= probs.sum()

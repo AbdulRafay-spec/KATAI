@@ -1,45 +1,49 @@
+"use client";
+
+import Link from "next/link";
 import { FileText } from "lucide-react";
-import { Badge, Card, PageHeader } from "@/components/ui";
-import { CLASS_INFO } from "@/lib/ai";
-import { SCANS } from "@/lib/mock-data";
+import { CaseTable, StoreMessage } from "@/components/case-table";
+import { Card, PageHeader } from "@/components/ui";
+import { useCases } from "@/lib/cases";
 
 export default function ReportsPage() {
-  const signed = SCANS.filter((s) => s.status === "Signed off");
-  const pending = SCANS.filter((s) => s.status !== "Signed off");
+  const { status, error, cases } = useCases();
+  const drafts = cases.filter((c) => c.review.status === "awaiting_review");
+  const reviewed = cases.filter((c) => c.review.status === "reviewed");
+
+  if (status !== "ready" || cases.length === 0)
+    return (
+      <div className="space-y-6">
+        <PageHeader title="Reports" subtitle="Every saved case has a printable report." />
+        <Card>
+          <StoreMessage
+            status={status}
+            error={error}
+            empty={
+              <p className="text-sm text-muted">
+                No reports yet. <Link href="/scan" className="font-medium text-accent hover:underline">Save a case</Link> to create one.
+              </p>
+            }
+          />
+        </Card>
+      </div>
+    );
 
   return (
     <div className="space-y-6">
       <PageHeader
         title="Reports"
-        subtitle="A report is final only after a clinician signs off on the AI finding."
+        subtitle="Drafts show the AI output only. A report shows a human review once the case is marked reviewed."
       />
-
-      <Card title={`Signed off (${signed.length})`} icon={<FileText className="size-4" />}>
-        <ul className="divide-y divide-border">
-          {signed.map((s) => (
-            <li key={s.id} className="flex flex-wrap items-center gap-3 py-3">
-              <span className="font-mono text-xs text-muted">{s.id}</span>
-              <span className="font-medium">{s.patientId}</span>
-              <Badge tone={CLASS_INFO[s.finding].tone}>{CLASS_INFO[s.finding].name}</Badge>
-              <span className="ml-auto text-sm text-muted">
-                {s.reviewer} · {s.date}
-              </span>
-            </li>
-          ))}
-        </ul>
+      <Card title={`Drafts · awaiting review (${drafts.length})`} icon={<FileText className="size-4" />}>
+        {drafts.length ? <CaseTable cases={drafts} linkTo="report" /> : <p className="text-sm text-muted">No drafts.</p>}
       </Card>
-
-      <Card title={`Waiting for sign-off (${pending.length})`}>
-        <ul className="divide-y divide-border">
-          {pending.map((s) => (
-            <li key={s.id} className="flex flex-wrap items-center gap-3 py-3">
-              <span className="font-mono text-xs text-muted">{s.id}</span>
-              <span className="font-medium">{s.patientId}</span>
-              <Badge tone={CLASS_INFO[s.finding].tone}>{CLASS_INFO[s.finding].name}</Badge>
-              <span className="ml-auto text-sm text-warn">AI draft · not reviewed</span>
-            </li>
-          ))}
-        </ul>
+      <Card title={`Reviewed in demo (${reviewed.length})`} icon={<FileText className="size-4" />}>
+        {reviewed.length ? (
+          <CaseTable cases={reviewed} linkTo="report" />
+        ) : (
+          <p className="text-sm text-muted">No reviewed cases yet.</p>
+        )}
       </Card>
     </div>
   );

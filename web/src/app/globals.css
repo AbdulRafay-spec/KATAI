@@ -124,3 +124,30 @@ body {
   background: var(--primary);
   color: var(--primary-fg);
 }
+
+@media (prefers-reduced-motion: reduce) {
+  *, *::before, *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+  }
+}
+
+@media print {
+  @page { margin: 14mm; }
+  :root, .dark {
+    --bg: #ffffff;
+    --surface: #ffffff;
+    --surface-2: #f3f6fa;
+    --border: #d5dce6;
+    --text: #0b1730;
+    --muted: #4a5870;
+    --accent: #1a5fc8;
+    --accent-soft: #eef4fd;
+    --warn: #7a4a05;
+    --warn-soft: #ffffff;
+    color-scheme: light;
+  }
+  body { background: #fff !important; }
+  .break-inside-avoid { break-inside: avoid; }
+}

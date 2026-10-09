@@ -2,8 +2,8 @@
 
 import Link from "next/link";
 import { usePathname } from "next/navigation";
-import { useState } from "react";
-import { Activity, FileText, LayoutDashboard, Menu, ScanLine, Settings, UserRound, Users, X } from "lucide-react";
+import { Suspense, useEffect, useRef, useState } from "react";
+import { Activity, FileText, FlaskConical, LayoutDashboard, Menu, ScanLine, Settings, Users, X } from "lucide-react";
 import { Logo } from "./logo";
 import { ThemeToggle } from "./theme-toggle";
 
@@ -14,14 +14,12 @@ const NAV = [
       { href: "/", label: "Overview", Icon: LayoutDashboard },
       { href: "/scan", label: "New scan", Icon: ScanLine },
       { href: "/patients", label: "Patients", Icon: Users },
+      { href: "/reports", label: "Reports", Icon: FileText },
     ],
   },
   {
-    section: "Analysis",
-    items: [
-      { href: "/reports", label: "Reports", Icon: FileText },
-      { href: "/model", label: "Model performance", Icon: Activity },
-    ],
+    section: "About",
+    items: [{ href: "/model", label: "Model information", Icon: Activity }],
   },
   {
     section: "System",
@@ -32,10 +30,28 @@ const NAV = [
 const ALL_ITEMS = NAV.flatMap((g) => g.items);
 
 function isActive(pathname: string, href: string) {
-  return href === "/" ? pathname === "/" : pathname.startsWith(href);
+  if (href === "/") return pathname === "/";
+  // A case detail belongs to the Patients section.
+  if (href === "/patients" && pathname.startsWith("/cases/")) return true;
+  return pathname.startsWith(href);
 }
 
-function Sidebar({ pathname, onNavigate }: { pathname: string; onNavigate?: () => void }) {
+function titleFor(pathname: string) {
+  if (pathname.startsWith("/cases/")) return "Case";
+  if (pathname.startsWith("/reports/")) return "Report";
+  return ALL_ITEMS.find((i) => isActive(pathname, i.href))?.label ?? "KATAI";
+}
+
+// Reading the URL is isolated in Suspense so the shell still prerenders on dynamic routes (Cache Components).
+function ActiveNav({ onNavigate }: { onNavigate?: () => void }) {
+  return <NavList pathname={usePathname()} onNavigate={onNavigate} />;
+}
+
+function PageTitle() {
+  return <>{titleFor(usePathname())}</>;
+}
+
+function Sidebar({ onNavigate }: { onNavigate?: () => void }) {
   return (
     <div className="flex h-full flex-col">
       <div className="flex h-16 items-center border-b border-border px-5">
@@ -44,6 +60,25 @@ function Sidebar({ pathname, onNavigate }: { pathname: string; onNavigate?: () =
         </Link>
       </div>
 
+      <Suspense fallback={<NavList pathname="" onNavigate={onNavigate} />}>
+        <ActiveNav onNavigate={onNavigate} />
+      </Suspense>
+
+      <div className="flex items-center gap-3 border-t border-border px-5 py-4">
+        <span className="grid size-9 place-items-center rounded-full bg-accent-soft text-accent">
+          <FlaskConical className="size-4" />
+        </span>
+        <div className="min-w-0">
+          <p className="truncate text-sm font-medium">Demo workspace</p>
+          <p className="text-xs text-muted">Research prototype</p>
+        </div>
+      </div>
+    </div>
+  );
+}
+
+function NavList({ pathname, onNavigate }: { pathname: string; onNavigate?: () => void }) {
+  return (
       <nav className="flex-1 overflow-y-auto px-3 py-5">
         {NAV.map((group) => (
           <div key={group.section} className="mb-6">
@@ -75,41 +110,44 @@ function Sidebar({ pathname, onNavigate }: { pathname: string; onNavigate?: () =
           </div>
         ))}
       </nav>
-
-      <div className="flex items-center gap-3 border-t border-border px-5 py-4">
-        <span className="grid size-9 place-items-center rounded-full bg-accent-soft text-accent">
-          <UserRound className="size-4" />
-        </span>
-        <div className="min-w-0">
-          <p className="truncate text-sm font-medium">Clinician</p>
-          <p className="text-xs text-muted">Radiology team</p>
-        </div>
-      </div>
-    </div>
   );
 }
 
 export function AppShell({ children }: { children: React.ReactNode }) {
-  const pathname = usePathname();
   const [menuOpen, setMenuOpen] = useState(false);
-  const title = ALL_ITEMS.find((i) => isActive(pathname, i.href))?.label ?? "KATAI";
+  const menuButtonRef = useRef<HTMLButtonElement>(null);
+  const closeButtonRef = useRef<HTMLButtonElement>(null);
+
+  useEffect(() => {
+    if (!menuOpen) return;
+    closeButtonRef.current?.focus();
+    const onKey = (e: KeyboardEvent) => e.key === "Escape" && setMenuOpen(false);
+    document.addEventListener("keydown", onKey);
+    const menuButton = menuButtonRef.current;
+    return () => {
+      document.removeEventListener("keydown", onKey);
+      menuButton?.focus();
+    };
+  }, [menuOpen]);
 
   return (
     <div className="min-h-screen">
-      <aside className="fixed inset-y-0 left-0 z-30 hidden w-64 border-r border-border bg-sidebar lg:block">
-        <Sidebar pathname={pathname} />
+      <aside className="fixed inset-y-0 left-0 z-30 hidden w-64 border-r border-border bg-sidebar lg:block print:hidden">
+        <Sidebar />
       </aside>
 
       {menuOpen && (
-        <div className="fixed inset-0 z-40 lg:hidden">
+        <div className="fixed inset-0 z-40 lg:hidden" role="dialog" aria-modal="true" aria-label="Navigation">
           <button
             type="button"
             aria-label="Close menu"
+            tabIndex={-1}
             className="absolute inset-0 bg-black/50"
             onClick={() => setMenuOpen(false)}
           />
           <aside className="absolute inset-y-0 left-0 w-72 border-r border-border bg-sidebar shadow-xl">
             <button
+              ref={closeButtonRef}
               type="button"
               aria-label="Close menu"
               onClick={() => setMenuOpen(false)}
@@ -117,26 +155,33 @@ export function AppShell({ children }: { children: React.ReactNode }) {
             >
               <X className="size-4" />
             </button>
-            <Sidebar pathname={pathname} onNavigate={() => setMenuOpen(false)} />
+            <Sidebar onNavigate={() => setMenuOpen(false)} />
           </aside>
         </div>
       )}
 
-      <div className="lg:pl-64">
-        <header className="sticky top-0 z-20 flex h-16 items-center gap-3 border-b border-border bg-bg/70 px-4 backdrop-blur-md sm:px-6">
+      {/* inert keeps keyboard focus inside the open mobile menu. */}
+      <div className="lg:pl-64 print:pl-0" inert={menuOpen}>
+        <header className="sticky top-0 z-20 flex h-16 items-center gap-3 border-b border-border bg-bg/70 px-4 backdrop-blur-md sm:px-6 print:hidden">
           <button
+            ref={menuButtonRef}
             type="button"
             aria-label="Open menu"
+            aria-expanded={menuOpen}
             onClick={() => setMenuOpen(true)}
             className="grid size-9 place-items-center rounded-lg text-muted hover:bg-surface-2 lg:hidden"
           >
             <Menu className="size-5" />
           </button>
-          <h1 className="flex-1 truncate text-base font-semibold">{title}</h1>
+          <h1 className="flex-1 truncate text-base font-semibold">
+            <Suspense fallback="KATAI">
+              <PageTitle />
+            </Suspense>
+          </h1>
           <ThemeToggle />
         </header>
 
-        <main className="mx-auto w-full max-w-5xl px-4 py-8 sm:px-6 lg:py-10">{children}</main>
+        <main className="mx-auto w-full max-w-6xl px-4 py-8 sm:px-6 lg:py-10 print:max-w-none print:p-0">{children}</main>
       </div>
     </div>
   );

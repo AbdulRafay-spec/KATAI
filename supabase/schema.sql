@@ -51,6 +51,18 @@ alter table public.scans
   add column if not exists final_diagnosis text check (final_diagnosis in ('glioma', 'meningioma', 'pituitary', 'notumor', 'other')),
   add column if not exists review_notes    text;
 
+-- 6b. Where the image came from (uploaded file or bundled demo sample)
+alter table public.scans
+  add column if not exists source_kind     text check (source_kind in ('upload', 'sample')),
+  add column if not exists sample_id       text,
+  add column if not exists sample_path     text,
+  add column if not exists reference_label text check (reference_label in ('glioma', 'meningioma', 'pituitary', 'notumor'));
+
+-- 6c. Review status vocabulary used by the app ('Signed off' kept for older rows).
+alter table public.scans drop constraint if exists scans_status_check;
+alter table public.scans
+  add constraint scans_status_check check (status in ('Awaiting review', 'Reviewed', 'Signed off'));
+
 -- 7. Indexes for the dashboard's most common lookups
 create index if not exists scans_created_at_idx on public.scans (created_at desc);
 create index if not exists scans_patient_id_idx on public.scans (patient_id);
@@ -73,6 +85,16 @@ create policy "demo add scans" on public.scans
     and doctor_agrees is null and final_diagnosis is null and review_notes is null
   );
 
+-- Demo review: the public key may change only the review columns, and only once (Awaiting review -> Reviewed).
+revoke update on public.scans from anon, authenticated;
+grant update (status, review_notes, reviewer, reviewed_at) on public.scans to anon, authenticated;
+
+drop policy if exists "demo review scans" on public.scans;
+create policy "demo review scans" on public.scans
+  for update to anon, authenticated
+  using (status = 'Awaiting review')
+  with check (status = 'Reviewed');
+
 -- 9. Private storage bucket for MRI images (max 4 MB, images only).
 insert into storage.buckets (id, name, public, file_size_limit, allowed_mime_types)
 values ('mri-scans', 'mri-scans', false, 4194304, array['image/jpeg', 'image/png', 'image/webp', 'image/bmp'])
@@ -82,3 +104,10 @@ drop policy if exists "demo upload mri images" on storage.objects;
 create policy "demo upload mri images" on storage.objects
   for insert to anon, authenticated
   with check (bucket_id = 'mri-scans');
+
+-- Lets the app show saved images through short-lived signed URLs. Anyone with the public key can read this bucket,
+-- so it must only hold de-identified demo images.
+drop policy if exists "demo read mri images" on storage.objects;
+create policy "demo read mri images" on storage.objects
+  for select to anon, authenticated
+  using (bucket_id = 'mri-scans');

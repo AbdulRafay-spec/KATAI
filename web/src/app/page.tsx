@@ -1,111 +1,115 @@
+"use client";
+
 import Link from "next/link";
-import { AlertTriangle, ArrowRight, Brain, Cpu, ScanLine } from "lucide-react";
+import { ArrowRight, ImagePlus, ScanLine } from "lucide-react";
+import { CaseTable, StoreMessage } from "@/components/case-table";
+import { formatDateTime, patientLabel, shortId } from "@/components/case-bits";
 import { ServiceStatus } from "@/components/service-status";
 import { Badge, Card, Label } from "@/components/ui";
 import { CLASS_INFO } from "@/lib/ai";
-import { MODEL_METRICS, SCANS } from "@/lib/mock-data";
-import { LiveScans } from "@/components/live-scans";
+import { STORAGE_LABEL, STORAGE_MODE, useCases } from "@/lib/cases";
+import { summarize } from "@/lib/cases-core";
 
 export default function OverviewPage() {
-  const awaiting = SCANS.filter((s) => s.status === "Awaiting review");
-  const flagged = awaiting.filter((s) => s.finding !== "notumor");
-  const [now, next] = awaiting;
-
-  const stats = [
-    { label: "Scans today", value: SCANS.filter((s) => s.date.startsWith("9 Oct")).length },
-    { label: "Awaiting review", value: awaiting.length },
-    { label: "Tumors flagged", value: SCANS.filter((s) => s.finding !== "notumor").length },
-    { label: "Model sensitivity", value: `${(MODEL_METRICS.sensitivity * 100).toFixed(1)}%` },
-  ];
+  const { status, error, cases } = useCases();
+  const ready = status === "ready";
+  // Evaluated only in the browser once cases have loaded, so "today" uses the viewer's clock.
+  const stats = ready ? summarize(cases, new Date()) : null;
+  const queue = cases
+    .filter((c) => c.review.status === "awaiting_review")
+    .sort((a, b) => a.createdAt.localeCompare(b.createdAt))
+    .slice(0, 5);
 
   return (
     <div className="space-y-6">
-      <div className="mb-2">
-        <h2 className="text-2xl font-semibold tracking-tight sm:text-3xl">Here is today&apos;s caseload.</h2>
-        <p className="mt-2 text-muted">KATAI Brain MRI Workspace · AI-assisted tumor screening</p>
-      </div>
+      <section className="flex flex-col gap-5 sm:flex-row sm:items-end">
+        <div className="flex-1">
+          <h2 className="text-2xl font-semibold tracking-tight sm:text-3xl">Brain MRI review workspace</h2>
+          <p className="mt-2 max-w-xl text-muted">
+            Classify a single brain MRI slice into four classes, save it as a case, and record a human review.
+          </p>
+        </div>
+        <div className="flex flex-wrap gap-3">
+          <Link href="/scan" className="btn-primary px-4 py-2.5">
+            <ScanLine className="size-4" /> New scan
+          </Link>
+          <Link
+            href="/scan#samples"
+            className="inline-flex items-center gap-2 rounded-xl border border-border bg-surface px-4 py-2.5 text-sm font-semibold hover:bg-surface-2"
+          >
+            <ImagePlus className="size-4" /> Try sample MRI
+          </Link>
+        </div>
+      </section>
 
       <div className="grid grid-cols-2 gap-3 lg:grid-cols-4">
-        {stats.map((s) => (
+        {[
+          { label: "Saved cases", value: stats?.total },
+          { label: "Awaiting review", value: stats?.awaiting },
+          { label: "Reviewed in demo", value: stats?.reviewed },
+          { label: "Saved today", value: stats?.savedToday },
+        ].map((s) => (
           <div key={s.label} className="rounded-2xl border border-border bg-surface p-4">
             <Label>{s.label}</Label>
-            <p className="mt-2 text-2xl font-semibold tabular-nums">{s.value}</p>
+            <p className="mt-2 text-3xl font-semibold tabular-nums">{s.value ?? "–"}</p>
           </div>
         ))}
       </div>
 
-      <Card title="Analysis engine" icon={<Cpu className="size-4" />}>
-        <div className="grid gap-3 sm:grid-cols-2">
-          <div className="rounded-xl border border-border bg-surface-2/60 p-4">
-            <Label>Model</Label>
-            <p className="mt-1 text-sm">{MODEL_METRICS.architecture}</p>
-          </div>
-          <ServiceStatus />
-        </div>
-      </Card>
-
-      <section className="flex flex-col gap-4 rounded-2xl border border-border bg-surface p-5 sm:flex-row sm:items-center sm:p-6">
-        <span className="grid size-12 shrink-0 place-items-center rounded-xl bg-accent-soft text-accent">
-          <Brain className="size-6" />
-        </span>
-        <div className="flex-1">
-          <h2 className="font-semibold">Analyze a new brain MRI</h2>
-          <p className="mt-1 text-sm text-muted">
-            Upload a scan and get a tumor classification with confidence scores in about a second.
-          </p>
-        </div>
-        <Link
-          href="/scan"
-          className="btn-primary px-4 py-2.5"
-        >
-          <ScanLine className="size-4" /> New scan
-        </Link>
-      </section>
-
-      <Card title="Review queue" action={<Link href="/patients" className="text-sm font-medium text-accent hover:underline">All patients</Link>}>
-        <div className="grid gap-3 sm:grid-cols-2">
-          {[
-            { tag: "Now", scan: now },
-            { tag: "Next", scan: next },
-          ].map(({ tag, scan }) =>
-            scan ? (
-              <div
-                key={tag}
-                className={`rounded-xl border p-4 ${tag === "Now" ? "border-primary/50 bg-accent-soft/60 shadow-[0_0_0_1px_var(--primary-glow)]" : "border-border"}`}
-              >
-                <Label>
-                  {tag} · {scan.date.split(", ")[1]}
-                </Label>
-                <div className="mt-2 flex items-center justify-between gap-3">
-                  <p className="font-medium">
-                    {scan.patientId} · {scan.id}
-                  </p>
-                  <Badge tone={CLASS_INFO[scan.finding].tone}>{CLASS_INFO[scan.finding].name}</Badge>
-                </div>
-              </div>
-            ) : null,
+      <div className="grid gap-6 lg:grid-cols-[1fr_320px]">
+        <Card title="Review queue" action={<span className="text-xs text-muted">Oldest first</span>}>
+          {ready && queue.length > 0 ? (
+            <ul className="divide-y divide-border">
+              {queue.map((c) => (
+                <li key={c.id}>
+                  <Link
+                    href={`/cases/${c.id}`}
+                    className="-mx-2 flex flex-wrap items-center gap-3 rounded-lg px-2 py-3 hover:bg-surface-2"
+                  >
+                    <span className="font-mono text-xs text-muted">{shortId(c.id)}</span>
+                    <span className="font-medium">{patientLabel(c)}</span>
+                    <Badge tone={CLASS_INFO[c.prediction].tone}>{CLASS_INFO[c.prediction].name}</Badge>
+                    <span className="ml-auto text-sm text-muted">{formatDateTime(c.createdAt)}</span>
+                    <ArrowRight className="size-4 text-accent" aria-hidden />
+                  </Link>
+                </li>
+              ))}
+            </ul>
+          ) : (
+            <StoreMessage
+              status={status}
+              error={error}
+              empty={<p className="text-sm text-muted">Nothing is waiting for review. Analyze and save a scan to add one.</p>}
+            />
           )}
-        </div>
+        </Card>
 
-        {flagged.length > 0 && (
-          <div className="mt-4 flex flex-col gap-3 rounded-xl border border-warn/40 bg-warn-soft p-4 sm:flex-row sm:items-center">
-            <AlertTriangle className="size-5 shrink-0 text-warn" />
-            <p className="flex-1 text-sm">
-              <strong>{flagged.length} tumor findings</strong> are waiting for clinician sign-off. AI results are not
-              final until reviewed.
-            </p>
-            <Link
-              href="/patients"
-              className="btn-primary px-4 py-2"
-            >
-              Review <ArrowRight className="size-4" />
-            </Link>
+        <Card title="System">
+          <div className="space-y-3">
+            <ServiceStatus />
+            <div className="rounded-xl border border-border bg-surface-2/60 p-4">
+              <Label>Case storage</Label>
+              <p className="mt-1 text-sm">{STORAGE_LABEL[STORAGE_MODE]}</p>
+            </div>
           </div>
-        )}
-      </Card>
+        </Card>
+      </div>
 
-      <Card title="Recent results" action={<span className="text-xs text-muted">Live from database</span>}>
-        <LiveScans />
+      <Card title="Recent cases" action={<Link href="/patients" className="text-sm font-medium text-accent hover:underline">All patients</Link>}>
+        {ready && cases.length > 0 ? (
+          <CaseTable cases={cases.slice(0, 8)} />
+        ) : (
+          <StoreMessage
+            status={status}
+            error={error}
+            empty={
+              <p className="text-sm text-muted">
+                No cases yet.{" "}
+                <Link href="/scan" className="font-medium text-accent hover:underline">Analyze the first scan</Link>.
+              </p>
+            }
+          />
+        )}
       </Card>
     </div>
   );
