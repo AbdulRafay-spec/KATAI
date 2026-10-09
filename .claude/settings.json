@@ -1,0 +1,9 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(curl -s -o /dev/null -w \"web %{http_code}\\\\n\" --max-time 60 http://localhost:3100/)",
+      "Bash(rm -f shots/*.png)",
+      "Bash(timeout 400 node run.mjs)"
+    ]
+  }
+}

@@ -99,16 +99,14 @@ async function sbGet(id: string): Promise<CaseRecord | null> {
   return data ? toRecord(data as ScanRow) : null;
 }
 
+// The row is written before the image so a rejected insert never leaves an orphan object. Both steps are keyed by
+// the attempt's stable ID, so retrying the same save neither duplicates the row nor uploads a second image.
 export async function sbCreate(record: CaseRecord, file: Blob, prediction: Prediction): Promise<CaseRecord> {
   const sb = client();
   let imagePath: string | null = null;
-
   if (record.source.kind === "upload") {
     const ext = (record.source.fileName.split(".").pop() || "png").toLowerCase().replace(/[^a-z0-9]/g, "") || "png";
     imagePath = `${record.createdAt.slice(0, 10)}/${record.id}.${ext}`;
-    const up = await sb.storage.from(BUCKET).upload(imagePath, file, { contentType: file.type || undefined });
-    // A repeated save of the same case reuses the already uploaded image.
-    if (up.error && !/exists|duplicate/i.test(up.error.message)) throw new Error(friendly(up.error, "Image upload"));
   }
 
   const { error } = await sb.from("scans").insert({
@@ -132,6 +130,12 @@ export async function sbCreate(record: CaseRecord, file: Blob, prediction: Predi
     reference_label: record.source.kind === "sample" ? record.source.referenceLabel : null,
   });
   if (error && error.code !== "23505") throw new Error(friendly(error, "Saving the case"));
+
+  if (imagePath) {
+    const up = await sb.storage.from(BUCKET).upload(imagePath, file, { contentType: file.type || undefined });
+    if (up.error && !/exists|duplicate/i.test(up.error.message))
+      throw new Error(`The case record was saved but the image upload failed (${up.error.message}). Press Retry save.`);
+  }
 
   const saved = await sbGet(record.id);
   if (!saved) throw new Error("The case was not found after saving.");

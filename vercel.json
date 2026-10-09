@@ -13,6 +13,7 @@
     }
   },
   "rewrites": [
+    { "source": "/ai", "destination": { "service": "ai" } },
     { "source": "/ai/(.*)", "destination": { "service": "ai" } },
     { "source": "/(.*)", "destination": { "service": "web" } }
   ]

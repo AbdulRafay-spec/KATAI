@@ -11,7 +11,7 @@ const NAV = [
   {
     section: "Workspace",
     items: [
-      { href: "/", label: "Overview", Icon: LayoutDashboard },
+      { href: "/dashboard", label: "Overview", Icon: LayoutDashboard },
       { href: "/scan", label: "New scan", Icon: ScanLine },
       { href: "/patients", label: "Patients", Icon: Users },
       { href: "/reports", label: "Reports", Icon: FileText },
@@ -30,7 +30,6 @@ const NAV = [
 const ALL_ITEMS = NAV.flatMap((g) => g.items);
 
 function isActive(pathname: string, href: string) {
-  if (href === "/") return pathname === "/";
   // A case detail belongs to the Patients section.
   if (href === "/patients" && pathname.startsWith("/cases/")) return true;
   return pathname.startsWith(href);
@@ -55,7 +54,7 @@ function Sidebar({ onNavigate }: { onNavigate?: () => void }) {
   return (
     <div className="flex h-full flex-col">
       <div className="flex h-16 items-center border-b border-border px-5">
-        <Link href="/" onClick={onNavigate}>
+        <Link href="/" onClick={onNavigate} aria-label="KATAI home">
           <Logo />
         </Link>
       </div>

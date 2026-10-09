@@ -1,3 +1,22 @@
 {
-  "samples": []
+  "samples": [
+    {
+      "id": "wm-glioblastoma-t1c-axial",
+      "file": "/samples/glioma-gbm-t1c-axial.jpg",
+      "title": "Glioblastoma, axial T1 + contrast",
+      "referenceLabel": "glioma",
+      "source": "Wikimedia Commons, \"Glioblastoma multiforme - MRT T1KM ax.jpg\" by Hellerhoff (own work). Description: histology confirmed by biopsy. https://commons.wikimedia.org/wiki/File:Glioblastoma_multiforme_-_MRT_T1KM_ax.jpg",
+      "license": "CC BY-SA 3.0 (https://creativecommons.org/licenses/by-sa/3.0), unmodified",
+      "credit": "Image: Hellerhoff, Wikimedia Commons, CC BY-SA 3.0"
+    },
+    {
+      "id": "wm-normal-t2-axial",
+      "file": "/samples/normal-t2-axial.jpg",
+      "title": "Normal brain, axial T2",
+      "referenceLabel": "notumor",
+      "source": "Wikimedia Commons, \"Normal axial T2-weighted MR image of the brain.jpg\" by Novaksean (own work). https://commons.wikimedia.org/wiki/File:Normal_axial_T2-weighted_MR_image_of_the_brain.jpg",
+      "license": "CC BY-SA 4.0 (https://creativecommons.org/licenses/by-sa/4.0), unmodified",
+      "credit": "Image: Novaksean, Wikimedia Commons, CC BY-SA 4.0"
+    }
+  ]
 }

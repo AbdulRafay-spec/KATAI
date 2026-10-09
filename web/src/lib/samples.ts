@@ -7,9 +7,21 @@ export type Sample = {
   referenceLabel: TumorClass | null;
   source: string;
   license: string;
+  credit: string;
 };
 
 export const SAMPLES_MANIFEST = "/samples/manifest.json";
+
+let cached: Promise<Sample[]> | null = null;
+
+// Shared, cached lookup used to show attribution wherever a sample image appears.
+export function getSamples() {
+  cached ??= loadSamples().catch(() => {
+    cached = null;
+    return [];
+  });
+  return cached;
+}
 
 // Samples are only shown when listed in public/samples/manifest.json with a recorded source and license.
 export async function loadSamples(signal?: AbortSignal): Promise<Sample[]> {
@@ -28,6 +40,7 @@ export async function loadSamples(signal?: AbortSignal): Promise<Sample[]> {
       r.source.length > 0 &&
       typeof r.license === "string" &&
       r.license.length > 0 &&
+      typeof r.credit === "string" &&
       (r.referenceLabel === null || CLASSES.includes(r.referenceLabel as TumorClass))
     );
   });

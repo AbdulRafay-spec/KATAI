@@ -59,11 +59,26 @@ The dashboard picks one mode at build time and shows it on Overview, Settings an
   (`katai.demo.cases.v1`). Uploaded images are **not** stored, so their preview is unavailable after a refresh;
   bundled samples always show. Settings → *Reset demo data* clears only that key.
 
+## Routes
+
+`/` is a public landing page (no login). The workspace is `/dashboard`, `/scan`, `/patients`, `/cases/[id]`,
+`/reports`, `/reports/[id]`, `/model` and `/settings` (route group `web/src/app/(workspace)`).
+
 ## Demo samples
 
-`web/public/samples/manifest.json` lists sample images for the **Try sample MRI** buttons. It is empty: no approved,
-redistributable sample images are in the repository yet. See `web/public/samples/README.md` for the format; each entry
-needs a recorded source and license. The dataset reference label is shown next to the live prediction, never instead of it.
+`web/public/samples/manifest.json` lists the **Try sample MRI** images. Each is a real, de-identified, openly licensed
+slice from Wikimedia Commons, stored unmodified and credited wherever it is shown:
+
+| Sample | Reference label | License | Model result (model sha256 `48276b18…21bb15`) |
+|---|---|---|---|
+| `glioma-gbm-t1c-axial.jpg` — biopsy-confirmed glioblastoma, Hellerhoff | glioma | CC BY-SA 3.0 | **meningioma** 0.859 (glioma 0.130, no tumor 0.008, pituitary 0.003) — disagrees |
+| `normal-t2-axial.jpg` — normal brain, Novaksean | no tumor | CC BY-SA 4.0 | **no tumor** 1.000 — agrees |
+
+These images are not from the Kaggle training dataset, so they are an external check, not part of the reported test
+set. The glioma miss is consistent with the model's known glioma→meningioma confusion and is shown as-is in the app
+("differs from the model prediction"). Two images are not a validation; they only show the pipeline end to end.
+Images generated or retrieved by chatbots (e.g. a Gemini result carrying "Science Photo Library" watermarks) have no
+verified label or usage rights and must not be used as evidence.
 
 ## Checks
 

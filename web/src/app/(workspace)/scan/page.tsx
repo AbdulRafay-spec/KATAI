@@ -3,6 +3,7 @@
 import Link from "next/link";
 import { useEffect, useRef, useState } from "react";
 import { AlertCircle, ArrowRight, CheckCircle2, ImagePlus, Loader2, RotateCcw, Save, ScanLine, UploadCloud } from "lucide-react";
+import { SampleCredit } from "@/components/case-bits";
 import { Card, Label, PageHeader } from "@/components/ui";
 import { PredictionSummary, PrototypeNotice, ReferenceComparison, ScoreBars } from "@/components/prediction";
 import { AiServiceError, type Prediction, predictScan } from "@/lib/ai";
@@ -252,7 +253,7 @@ export default function ScanPage() {
           >
             {selection ? (
               // eslint-disable-next-line @next/next/no-img-element
-              <img src={selection.url} alt="Selected MRI image" className="h-full w-full bg-black object-contain" />
+              <img src={selection.url} alt="Selected MRI image" className="absolute inset-0 h-full w-full bg-black object-contain" />
             ) : (
               <div className="p-6 text-center">
                 <UploadCloud className="mx-auto size-9 text-accent" />
@@ -285,6 +286,7 @@ export default function ScanPage() {
               </span>
             </p>
           )}
+          {selection?.source.kind === "sample" && <SampleCredit sampleId={selection.source.sampleId} />}
 
           {pickError && (
             <p role="alert" className="mt-3 flex gap-2 rounded-lg border border-danger/40 bg-danger-soft p-3 text-sm text-danger">
@@ -376,7 +378,7 @@ function SavePanel({ save, onSave }: { save: SaveState; onSave: () => void }) {
     <div className="space-y-2">
       <button type="button" onClick={onSave} disabled={save.kind === "saving"} className="btn-primary w-full px-4 py-2.5">
         {save.kind === "saving" ? <Loader2 className="size-4 animate-spin" /> : <Save className="size-4" />}
-        {save.kind === "saving" ? "Saving…" : "Save for review"}
+        {save.kind === "saving" ? "Saving…" : save.kind === "error" ? "Retry save" : "Save for review"}
       </button>
       <p className="text-xs text-muted">Saves to: {STORAGE_LABEL[STORAGE_MODE]}</p>
       {save.kind === "error" && (

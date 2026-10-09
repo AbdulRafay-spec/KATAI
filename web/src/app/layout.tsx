@@ -1,6 +1,5 @@
 import type { Metadata } from "next";
 import { Geist_Mono, Plus_Jakarta_Sans } from "next/font/google";
-import { AppShell } from "@/components/app-shell";
 import { themeInitScript } from "@/lib/theme-script";
 import "./globals.css";
 
@@ -31,7 +30,7 @@ export default function RootLayout({ children }: LayoutProps<"/">) {
         <script dangerouslySetInnerHTML={{ __html: themeInitScript }} />
       </head>
       <body className="min-h-full font-sans">
-        <AppShell>{children}</AppShell>
+        {children}
       </body>
     </html>
   );

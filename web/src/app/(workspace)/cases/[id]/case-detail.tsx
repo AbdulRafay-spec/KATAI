@@ -3,7 +3,7 @@
 import Link from "next/link";
 import { useState } from "react";
 import { AlertCircle, ArrowLeft, CheckCircle2, FileText, Loader2 } from "lucide-react";
-import { CaseImage, StatusBadge, formatDateTime, patientLabel, provenanceLabel, shortId } from "@/components/case-bits";
+import { CaseImage, SampleCredit, StatusBadge, formatDateTime, patientLabel, provenanceLabel, shortId } from "@/components/case-bits";
 import { PredictionSummary, PrototypeNotice, ReferenceComparison, ScoreBars } from "@/components/prediction";
 import { Card, Label } from "@/components/ui";
 import { reviewCase, useCase } from "@/lib/cases";
@@ -46,7 +46,11 @@ export function CaseDetail({ id }: { id: string }) {
       <div className="grid gap-6 lg:grid-cols-2">
         <Card title="Image">
           <CaseImage record={record} />
-          <p className="mt-3 truncate text-sm text-muted">{record.source.fileName}</p>
+          <p className="mt-3 truncate text-sm text-muted">
+            {record.source.kind === "sample" ? "Bundled sample: " : "Uploaded: "}
+            {record.source.fileName}
+          </p>
+          {record.source.kind === "sample" && <SampleCredit sampleId={record.source.sampleId} />}
         </Card>
 
         <Card title="AI result (unchanged by review)">

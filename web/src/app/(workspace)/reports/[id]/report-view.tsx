@@ -2,7 +2,7 @@
 
 import Link from "next/link";
 import { ArrowLeft, Loader2, Printer } from "lucide-react";
-import { CaseImage, formatDateTime, patientLabel, provenanceLabel, shortId } from "@/components/case-bits";
+import { CaseImage, SampleCredit, formatDateTime, patientLabel, provenanceLabel, shortId } from "@/components/case-bits";
 import { LogoMark } from "@/components/logo";
 import { PredictionSummary, ReferenceComparison, ScoreBars } from "@/components/prediction";
 import { Label } from "@/components/ui";
@@ -66,7 +66,10 @@ export function ReportView({ id }: { id: string }) {
         </dl>
 
         <section className="grid gap-6 sm:grid-cols-[220px_1fr] break-inside-avoid">
-          <CaseImage record={record} className="sm:w-[220px]" />
+          <div>
+            <CaseImage record={record} className="sm:w-[220px]" />
+            {record.source.kind === "sample" && <SampleCredit sampleId={record.source.sampleId} />}
+          </div>
           <div className="space-y-4">
             <h2 className="font-semibold">1. AI model output</h2>
             <PredictionSummary prediction={record.prediction} confidence={record.confidence} />

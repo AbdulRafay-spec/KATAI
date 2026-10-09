@@ -6,10 +6,10 @@
    * Supabase: `supabase/schema.sql` has been re-run after the latest pull, and the two `NEXT_PUBLIC_SUPABASE_*`
      variables are set in Vercel and the site redeployed.
    * Offline/rehearsal: set `NEXT_PUBLIC_CASE_STORAGE=local` (or leave Supabase unset).
-2. **Warm the classifier**: open Overview and wait until *AI classifier: Available*. On Vercel the first request
+2. **Warm the classifier**: open `/dashboard` and wait until *AI classifier: Available*. On Vercel the first request
    after idle can be slow.
-3. **Have the images ready**: 2–3 approved, de-identified MRI slices (JPG/PNG ≤ 4 MB) in a desktop folder, or listed in
-   `web/public/samples/manifest.json` so the **Try sample MRI** buttons appear.
+3. **Samples are bundled**: the two **Try sample MRI** buttons (normal T2, glioblastoma T1+C) are real, licensed
+   Wikimedia Commons slices. Expected results: normal → no tumor; glioblastoma → meningioma (a known miss).
 4. **Clean start** (on-device mode): Settings → Reset demo data. In Supabase mode, previous demo cases stay visible.
 5. Browser zoom 100–110 %, light theme for projectors.
 
@@ -17,9 +17,10 @@
 
 | Time | Action | Say |
 |---|---|---|
-| 0:00 | Overview | "A review workspace for single brain MRI slices. Counts and queue come from saved cases." |
-| 0:10 | **New scan** → type `DEMO-01` → choose sample / drop image | "No names, just a case ID." |
+| 0:00 | Landing page `/` → **Open workspace** | "A human-in-the-loop review workspace for single brain MRI slices." |
+| 0:10 | **New scan** → type `DEMO-01` → **Normal brain, axial T2** | "Real, openly licensed scans. No names, just a case ID." |
 | 0:25 | **Analyze image** | "Live call to our classifier. All four class scores, in model order." |
+| 0:35 | (optional) **Glioblastoma** sample → Analyze | "Reference label glioma, model says meningioma — exactly the weakness our evaluation reports. That's why a human reviews every case." |
 | 0:40 | Point at *Model prediction*, scores, request time, prototype notice | "A model score, not a diagnosis." |
 | 0:50 | **Save for review** → **Open case** | "Saved once, even if you double-click." |
 | 1:00 | Type a note → **Mark reviewed (demo)** | "Human review is separate; the AI output is never overwritten." |
