@@ -1,6 +1,8 @@
 import type { Tone } from "@/components/ui";
 
-export const AI_SERVICE_URL = (process.env.NEXT_PUBLIC_AI_SERVICE_URL ?? "http://127.0.0.1:8000").replace(/\/$/, "");
+// On Vercel the AI service shares the site's domain under /ai (see vercel.json).
+const DEFAULT_AI_URL = process.env.NODE_ENV === "production" ? "/ai" : "http://127.0.0.1:8000";
+export const AI_SERVICE_URL = (process.env.NEXT_PUBLIC_AI_SERVICE_URL ?? DEFAULT_AI_URL).replace(/\/$/, "");
 
 export type TumorClass = "glioma" | "meningioma" | "pituitary" | "notumor";
 
