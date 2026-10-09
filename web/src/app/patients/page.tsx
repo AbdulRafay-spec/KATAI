@@ -6,7 +6,7 @@ import { PATIENTS, SCANS } from "@/lib/mock-data";
 export default function PatientsPage() {
   return (
     <div className="space-y-6">
-      <PageHeader title="Patients" subtitle="Patients are identified by ID only. Demo data until Supabase is connected." />
+      <PageHeader title="Patients" subtitle="Patients are identified by ID only. Demo data until a database is connected." />
 
       <Card title={`${PATIENTS.length} patients`}>
         <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-3">

@@ -30,11 +30,11 @@ export function Card({
   children: React.ReactNode;
 }) {
   return (
-    <section className={`rounded-2xl border border-border bg-surface p-5 sm:p-6 ${className}`}>
+    <section className={`rounded-2xl border border-border bg-surface/80 p-5 shadow-[0_1px_3px_rgba(16,40,90,0.04)] backdrop-blur-sm sm:p-6 ${className}`}>
       {(title || action) && (
         <div className="mb-4 flex items-center gap-3">
           {icon && (
-            <span className="grid size-9 place-items-center rounded-lg border border-border bg-surface-2 text-accent">
+            <span className="grid size-9 place-items-center rounded-xl border border-border bg-accent-soft text-accent">
               {icon}
             </span>
           )}

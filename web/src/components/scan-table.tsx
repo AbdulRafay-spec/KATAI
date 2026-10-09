@@ -35,7 +35,7 @@ export function ScanTable({ scans }: { scans: ScanRecord[] }) {
               </td>
               <td className="px-5 py-3 sm:px-6">
                 {s.status === "Signed off" ? (
-                  <span className="text-success">Signed off</span>
+                  <span className="text-accent">Signed off</span>
                 ) : (
                   <span className="text-warn">{s.status}</span>
                 )}

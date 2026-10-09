@@ -3,7 +3,7 @@
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { useState } from "react";
-import { Activity, FileText, LayoutDashboard, Menu, ScanLine, Settings, Users, X } from "lucide-react";
+import { Activity, FileText, LayoutDashboard, Menu, ScanLine, Settings, UserRound, Users, X } from "lucide-react";
 import { Logo } from "./logo";
 import { ThemeToggle } from "./theme-toggle";
 
@@ -60,7 +60,9 @@ function Sidebar({ pathname, onNavigate }: { pathname: string; onNavigate?: () =
                       onClick={onNavigate}
                       aria-current={active ? "page" : undefined}
                       className={`flex items-center gap-3 rounded-lg px-3 py-2.5 text-sm font-medium transition-colors ${
-                        active ? "bg-accent-soft text-accent" : "text-muted hover:bg-surface-2 hover:text-text"
+                        active
+                          ? "bg-accent-soft font-semibold text-text [&>svg]:text-accent"
+                          : "text-muted hover:bg-surface-2 hover:text-text"
                       }`}
                     >
                       <Icon className="size-4" />
@@ -75,12 +77,12 @@ function Sidebar({ pathname, onNavigate }: { pathname: string; onNavigate?: () =
       </nav>
 
       <div className="flex items-center gap-3 border-t border-border px-5 py-4">
-        <span className="grid size-9 place-items-center rounded-full bg-accent-soft text-xs font-semibold text-accent">
-          AR
+        <span className="grid size-9 place-items-center rounded-full bg-accent-soft text-accent">
+          <UserRound className="size-4" />
         </span>
         <div className="min-w-0">
-          <p className="truncate text-sm font-medium">Abdul Rafay Ikram</p>
-          <p className="text-xs text-muted">Clinician</p>
+          <p className="truncate text-sm font-medium">Clinician</p>
+          <p className="text-xs text-muted">Radiology team</p>
         </div>
       </div>
     </div>
@@ -94,7 +96,7 @@ export function AppShell({ children }: { children: React.ReactNode }) {
 
   return (
     <div className="min-h-screen">
-      <aside className="fixed inset-y-0 left-0 z-30 hidden w-64 border-r border-border bg-surface/60 backdrop-blur lg:block">
+      <aside className="fixed inset-y-0 left-0 z-30 hidden w-64 border-r border-border bg-sidebar lg:block">
         <Sidebar pathname={pathname} />
       </aside>
 
@@ -106,7 +108,7 @@ export function AppShell({ children }: { children: React.ReactNode }) {
             className="absolute inset-0 bg-black/50"
             onClick={() => setMenuOpen(false)}
           />
-          <aside className="absolute inset-y-0 left-0 w-72 border-r border-border bg-surface shadow-xl">
+          <aside className="absolute inset-y-0 left-0 w-72 border-r border-border bg-sidebar shadow-xl">
             <button
               type="button"
               aria-label="Close menu"
@@ -121,7 +123,7 @@ export function AppShell({ children }: { children: React.ReactNode }) {
       )}
 
       <div className="lg:pl-64">
-        <header className="sticky top-0 z-20 flex h-16 items-center gap-3 border-b border-border bg-bg/80 px-4 backdrop-blur sm:px-6">
+        <header className="sticky top-0 z-20 flex h-16 items-center gap-3 border-b border-border bg-bg/70 px-4 backdrop-blur-md sm:px-6">
           <button
             type="button"
             aria-label="Open menu"

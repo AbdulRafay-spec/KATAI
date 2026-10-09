@@ -77,12 +77,12 @@ export default function ModelPage() {
                     <td key={j} className="p-1">
                       <div
                         className={`grid size-16 place-items-center rounded-lg font-semibold tabular-nums ${
-                          i === j ? "text-accent-fg" : v > 0 ? "text-danger" : "text-muted"
+                          i === j ? "text-primary-fg" : v > 0 ? "text-danger" : "text-muted"
                         }`}
                         style={{
                           background:
                             i === j
-                              ? `color-mix(in srgb, var(--accent) ${30 + (v / max) * 70}%, transparent)`
+                              ? `color-mix(in srgb, var(--primary) ${55 + (v / max) * 45}%, transparent)`
                               : v > 0
                                 ? "var(--danger-soft)"
                                 : "var(--surface-2)",

@@ -25,7 +25,9 @@ export function ThemeToggle() {
             aria-pressed={active}
             onClick={() => setTheme(value)}
             className={`grid size-8 place-items-center rounded-full transition-colors ${
-              active ? "bg-accent text-accent-fg" : "text-muted hover:bg-surface-2 hover:text-text"
+              active
+                ? "bg-primary-gradient text-primary-fg shadow-[0_4px_14px_-4px_var(--primary-glow)]"
+                : "text-muted hover:bg-surface-2 hover:text-text"
             }`}
           >
             <Icon className="size-4" />

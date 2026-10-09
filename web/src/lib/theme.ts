@@ -10,9 +10,9 @@ const listeners = new Set<() => void>();
 function readTheme(): Theme {
   try {
     const t = localStorage.getItem(STORAGE_KEY);
-    return t === "light" || t === "dark" ? t : "system";
+    return t === "dark" || t === "system" ? t : "light";
   } catch {
-    return "system";
+    return "light";
   }
 }
 

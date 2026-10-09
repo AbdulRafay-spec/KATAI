@@ -17,10 +17,10 @@ export type Prediction = {
 };
 
 export const CLASS_INFO: Record<TumorClass, { name: string; tone: Tone }> = {
-  glioma: { name: "Glioma", tone: "danger" },
-  meningioma: { name: "Meningioma", tone: "warn" },
-  pituitary: { name: "Pituitary tumor", tone: "warn" },
-  notumor: { name: "No tumor", tone: "success" },
+  glioma: { name: "Glioma", tone: "accent" },
+  meningioma: { name: "Meningioma", tone: "accent" },
+  pituitary: { name: "Pituitary tumor", tone: "accent" },
+  notumor: { name: "No tumor", tone: "neutral" },
 };
 
 export async function predictScan(file: File): Promise<Prediction> {

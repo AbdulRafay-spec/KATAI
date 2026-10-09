@@ -4,7 +4,7 @@ import { ServiceStatus } from "@/components/service-status";
 import { Badge, Card, Label } from "@/components/ui";
 import { CLASS_INFO } from "@/lib/ai";
 import { MODEL_METRICS, SCANS } from "@/lib/mock-data";
-import { ScanTable } from "@/components/scan-table";
+import { LiveScans } from "@/components/live-scans";
 
 export default function OverviewPage() {
   const awaiting = SCANS.filter((s) => s.status === "Awaiting review");
@@ -21,7 +21,7 @@ export default function OverviewPage() {
   return (
     <div className="space-y-6">
       <div className="mb-2">
-        <h2 className="text-2xl font-semibold tracking-tight sm:text-3xl">Abdul, here is today&apos;s caseload.</h2>
+        <h2 className="text-2xl font-semibold tracking-tight sm:text-3xl">Here is today&apos;s caseload.</h2>
         <p className="mt-2 text-muted">KATAI Brain MRI Workspace · AI-assisted tumor screening</p>
       </div>
 
@@ -56,7 +56,7 @@ export default function OverviewPage() {
         </div>
         <Link
           href="/scan"
-          className="inline-flex items-center justify-center gap-2 rounded-lg bg-accent px-4 py-2.5 text-sm font-semibold text-accent-fg shadow-sm transition hover:opacity-90"
+          className="btn-primary px-4 py-2.5"
         >
           <ScanLine className="size-4" /> New scan
         </Link>
@@ -71,7 +71,7 @@ export default function OverviewPage() {
             scan ? (
               <div
                 key={tag}
-                className={`rounded-xl border p-4 ${tag === "Now" ? "border-accent/40 bg-accent-soft/40" : "border-border"}`}
+                className={`rounded-xl border p-4 ${tag === "Now" ? "border-primary/50 bg-accent-soft/60 shadow-[0_0_0_1px_var(--primary-glow)]" : "border-border"}`}
               >
                 <Label>
                   {tag} · {scan.date.split(", ")[1]}
@@ -96,7 +96,7 @@ export default function OverviewPage() {
             </p>
             <Link
               href="/patients"
-              className="inline-flex items-center justify-center gap-1.5 rounded-lg bg-accent px-4 py-2 text-sm font-semibold text-accent-fg hover:opacity-90"
+              className="btn-primary px-4 py-2"
             >
               Review <ArrowRight className="size-4" />
             </Link>
@@ -104,8 +104,8 @@ export default function OverviewPage() {
         )}
       </Card>
 
-      <Card title="Recent results">
-        <ScanTable scans={SCANS.slice(0, 5)} />
+      <Card title="Recent results" action={<span className="text-xs text-muted">Live from database</span>}>
+        <LiveScans />
       </Card>
     </div>
   );

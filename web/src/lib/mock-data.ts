@@ -12,7 +12,7 @@ export type ScanRecord = {
   reviewer?: string;
 };
 
-// Demo records until scans are stored in Supabase.
+// Demo records until scans are stored in a database.
 export const SCANS: ScanRecord[] = [
   { id: "SC-2318", patientId: "PT-1042", date: "9 Oct 2026, 11:42", finding: "glioma", confidence: 0.97, status: "Awaiting review" },
   { id: "SC-2317", patientId: "PT-0988", date: "9 Oct 2026, 11:15", finding: "meningioma", confidence: 0.91, status: "Awaiting review" },

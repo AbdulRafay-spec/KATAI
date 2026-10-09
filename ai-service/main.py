@@ -25,6 +25,7 @@ DISPLAY_NAMES = {
 }
 
 API_KEY = os.environ.get("AI_SERVICE_KEY")
+MAX_UPLOAD_BYTES = 4 * 1024 * 1024  # keep in sync with web/src/lib/upload.ts
 
 app = FastAPI(title="KATAI AI Service")
 app.add_middleware(
@@ -51,8 +52,12 @@ async def predict(file: UploadFile = File(...), authorization: str | None = Head
     if API_KEY and authorization != f"Bearer {API_KEY}":
         raise HTTPException(401, "Invalid or missing API key")
 
+    data = await file.read()
+    if len(data) > MAX_UPLOAD_BYTES:
+        raise HTTPException(413, "Image is larger than 4 MB")
+
     try:
-        x = preprocess(await file.read())
+        x = preprocess(data)
     except UnidentifiedImageError:
         raise HTTPException(400, "File is not a valid image")
 

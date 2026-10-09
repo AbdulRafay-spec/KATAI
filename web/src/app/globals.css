@@ -2,43 +2,54 @@
 
 @custom-variant dark (&:where(.dark, .dark *));
 
+/* One blue hue family; status colors are kept only for warnings and errors. */
 :root {
-  --bg: #f5f7fb;
+  --bg: #f5f8fd;
   --surface: #ffffff;
-  --surface-2: #f0f3f8;
-  --border: #e2e6ee;
-  --text: #0e1424;
-  --muted: #5a6276;
-  --accent: #0b8fa3;
-  --accent-fg: #ffffff;
-  --accent-soft: #e2f4f7;
-  --warn: #a8670f;
-  --warn-soft: #fdf3e2;
-  --danger: #c93550;
-  --danger-soft: #fde9ed;
-  --success: #17895a;
-  --success-soft: #e2f5ec;
-  --glow: rgba(11, 143, 163, 0.06);
+  --surface-2: #f0f5fc;
+  --border: #e0e8f4;
+  --text: #0b1730;
+  --muted: #5d6e8a;
+  --accent: #1a66d9;
+  --accent-soft: #e8f1fe;
+  --primary: #1f6fe8;
+  --primary-fg: #ffffff;
+  --primary-glow: rgba(31, 111, 232, 0.3);
+  --primary-gradient: linear-gradient(135deg, #3b87f7 0%, #1f6fe8 55%, #1653c4 100%);
+  --warn: #9a5d06;
+  --warn-soft: #fdf6e7;
+  --danger: #c22f4b;
+  --danger-soft: #fdecef;
+  --success: #13805a;
+  --success-soft: #e5f6ef;
+  --glow-a: rgba(80, 155, 255, 0.16);
+  --glow-b: rgba(140, 205, 255, 0.18);
+  --sidebar: #ffffff;
   color-scheme: light;
 }
 
 .dark {
-  --bg: #060811;
-  --surface: #0d111d;
-  --surface-2: #131a2a;
-  --border: #1e2537;
-  --text: #e8ecf5;
-  --muted: #8e96ab;
-  --accent: #2cc6da;
-  --accent-fg: #03131a;
-  --accent-soft: rgba(44, 198, 218, 0.12);
-  --warn: #f3b54b;
-  --warn-soft: rgba(243, 181, 75, 0.09);
-  --danger: #ff6d84;
-  --danger-soft: rgba(255, 109, 132, 0.12);
-  --success: #3fdb98;
-  --success-soft: rgba(63, 219, 152, 0.12);
-  --glow: rgba(44, 198, 218, 0.07);
+  --bg: #05070e;
+  --surface: #0b0f1c;
+  --surface-2: #11172a;
+  --border: #1a2238;
+  --text: #edf2ff;
+  --muted: #8691ad;
+  --accent: #8ec0ff;
+  --accent-soft: #15213e;
+  --primary: #2f7cf6;
+  --primary-fg: #ffffff;
+  --primary-glow: rgba(47, 124, 246, 0.5);
+  --primary-gradient: linear-gradient(135deg, #4f9bff 0%, #2f7cf6 50%, #1d5bd6 100%);
+  --warn: #f2bd5c;
+  --warn-soft: rgba(242, 189, 92, 0.08);
+  --danger: #ff7a90;
+  --danger-soft: rgba(255, 122, 144, 0.1);
+  --success: #5fe0a8;
+  --success-soft: rgba(95, 224, 168, 0.1);
+  --glow-a: rgba(47, 124, 246, 0.16);
+  --glow-b: rgba(40, 190, 255, 0.07);
+  --sidebar: #070a14;
   color-scheme: dark;
 }
 
@@ -50,16 +61,48 @@
   --color-text: var(--text);
   --color-muted: var(--muted);
   --color-accent: var(--accent);
-  --color-accent-fg: var(--accent-fg);
   --color-accent-soft: var(--accent-soft);
+  --color-primary: var(--primary);
+  --color-primary-fg: var(--primary-fg);
   --color-warn: var(--warn);
   --color-warn-soft: var(--warn-soft);
   --color-danger: var(--danger);
   --color-danger-soft: var(--danger-soft);
   --color-success: var(--success);
   --color-success-soft: var(--success-soft);
-  --font-sans: var(--font-geist-sans);
+  --color-sidebar: var(--sidebar);
+  --font-sans: var(--font-jakarta);
   --font-mono: var(--font-geist-mono);
+}
+
+@utility btn-primary {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.5rem;
+  border-radius: 0.75rem;
+  background: var(--primary-gradient);
+  color: var(--primary-fg);
+  font-weight: 600;
+  font-size: 0.875rem;
+  box-shadow: 0 8px 24px -6px var(--primary-glow), inset 0 1px 0 rgba(255, 255, 255, 0.18);
+  transition: transform 0.15s ease, box-shadow 0.15s ease, filter 0.15s ease;
+  &:hover {
+    filter: brightness(1.08);
+    box-shadow: 0 10px 30px -6px var(--primary-glow), inset 0 1px 0 rgba(255, 255, 255, 0.18);
+  }
+  &:active {
+    transform: translateY(1px);
+  }
+  &:disabled {
+    cursor: not-allowed;
+    opacity: 0.4;
+    box-shadow: none;
+  }
+}
+
+@utility bg-primary-gradient {
+  background: var(--primary-gradient);
 }
 
 @keyframes scan {
@@ -69,8 +112,15 @@
 
 body {
   background-color: var(--bg);
-  background-image: radial-gradient(1200px 600px at 70% -10%, var(--glow), transparent 70%);
+  background-image:
+    radial-gradient(900px 520px at 85% -8%, var(--glow-a), transparent 70%),
+    radial-gradient(700px 480px at 30% 110%, var(--glow-b), transparent 70%);
   background-attachment: fixed;
   color: var(--text);
   transition: background-color 0.2s ease, color 0.2s ease;
+}
+
+::selection {
+  background: var(--primary);
+  color: var(--primary-fg);
 }
